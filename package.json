@@ -17,6 +17,146 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./streaming": {
+      "import": {
+        "types": "./dist/streaming.d.ts",
+        "default": "./dist/streaming.js"
+      },
+      "require": {
+        "types": "./dist/streaming.d.cts",
+        "default": "./dist/streaming.cjs"
+      }
+    },
+    "./priority": {
+      "import": {
+        "types": "./dist/priority.d.ts",
+        "default": "./dist/priority.js"
+      },
+      "require": {
+        "types": "./dist/priority.d.cts",
+        "default": "./dist/priority.cjs"
+      }
+    },
+    "./request-budget": {
+      "import": {
+        "types": "./dist/request-budget.d.ts",
+        "default": "./dist/request-budget.js"
+      },
+      "require": {
+        "types": "./dist/request-budget.d.cts",
+        "default": "./dist/request-budget.cjs"
+      }
+    },
+    "./distributed-dedupe": {
+      "import": {
+        "types": "./dist/distributed-dedupe.d.ts",
+        "default": "./dist/distributed-dedupe.js"
+      },
+      "require": {
+        "types": "./dist/distributed-dedupe.d.cts",
+        "default": "./dist/distributed-dedupe.cjs"
+      }
+    },
+    "./multi-level-cache": {
+      "import": {
+        "types": "./dist/multi-level-cache.d.ts",
+        "default": "./dist/multi-level-cache.js"
+      },
+      "require": {
+        "types": "./dist/multi-level-cache.d.cts",
+        "default": "./dist/multi-level-cache.cjs"
+      }
+    },
+    "./persistent-cache": {
+      "import": {
+        "types": "./dist/persistent-cache.d.ts",
+        "default": "./dist/persistent-cache.js"
+      },
+      "require": {
+        "types": "./dist/persistent-cache.d.cts",
+        "default": "./dist/persistent-cache.cjs"
+      }
+    },
+    "./cross-tab": {
+      "import": {
+        "types": "./dist/cross-tab.d.ts",
+        "default": "./dist/cross-tab.js"
+      },
+      "require": {
+        "types": "./dist/cross-tab.d.cts",
+        "default": "./dist/cross-tab.cjs"
+      }
+    },
+    "./telemetry": {
+      "import": {
+        "types": "./dist/telemetry.d.ts",
+        "default": "./dist/telemetry.js"
+      },
+      "require": {
+        "types": "./dist/telemetry.d.cts",
+        "default": "./dist/telemetry.cjs"
+      }
+    },
+    "./ssr": {
+      "import": {
+        "types": "./dist/ssr.d.ts",
+        "default": "./dist/ssr.js"
+      },
+      "require": {
+        "types": "./dist/ssr.d.cts",
+        "default": "./dist/ssr.cjs"
+      }
+    },
+    "./edge": {
+      "import": {
+        "types": "./dist/edge.d.ts",
+        "default": "./dist/edge.js"
+      },
+      "require": {
+        "types": "./dist/edge.d.cts",
+        "default": "./dist/edge.cjs"
+      }
+    },
+    "./adapters/react": {
+      "import": {
+        "types": "./dist/adapters/react.d.ts",
+        "default": "./dist/adapters/react.js"
+      },
+      "require": {
+        "types": "./dist/adapters/react.d.cts",
+        "default": "./dist/adapters/react.cjs"
+      }
+    },
+    "./adapters/vue": {
+      "import": {
+        "types": "./dist/adapters/vue.d.ts",
+        "default": "./dist/adapters/vue.js"
+      },
+      "require": {
+        "types": "./dist/adapters/vue.d.cts",
+        "default": "./dist/adapters/vue.cjs"
+      }
+    },
+    "./adapters/svelte": {
+      "import": {
+        "types": "./dist/adapters/svelte.d.ts",
+        "default": "./dist/adapters/svelte.js"
+      },
+      "require": {
+        "types": "./dist/adapters/svelte.d.cts",
+        "default": "./dist/adapters/svelte.cjs"
+      }
+    },
+    "./adapters/solid": {
+      "import": {
+        "types": "./dist/adapters/solid.d.ts",
+        "default": "./dist/adapters/solid.js"
+      },
+      "require": {
+        "types": "./dist/adapters/solid.d.cts",
+        "default": "./dist/adapters/solid.cjs"
+      }
     }
   },
   "files": [
