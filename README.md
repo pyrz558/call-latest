@@ -228,16 +228,15 @@ Or delta response:
 { "add": [{ "id": "2", "title": "iphone 16" }], "removeIds": ["9"], "version": "etag-v6" }
 ```
 
-### Cloudflare Worker örneği
+### Cloudflare Worker Example
 
-Bu repodaki `examples/cloudflare-worker.ts` dosyası, iki endpoint gösterir:
+The `examples/cloudflare-worker.ts` file in this repository demonstrates two endpoints:
 
-- `GET /api/search` → ETag + versiyonlu sonuç dönen arama
-- `POST /api/search/cancel` → `dispatchCancelSignal` ile tetiklenen iptal endpoint’i
+- `GET /api/search` → Search endpoint returning ETag + versioned results
+- `POST /api/search/cancel` → Cancellation endpoint triggered by `dispatchCancelSignal`
 
-`wrangler.toml` içinde Worker’a bağlayarak, tarayıcıdaki `call-latest` çağrılarını edge üzerinde gerçek cancel + delta mimarisiyle koşturabilirsin.
+By binding this to your Worker within `wrangler.toml`, you can run your client-side `call-latest` requests with a true edge-level cancellation + delta architecture.
 
----
 
 ## API reference
 
