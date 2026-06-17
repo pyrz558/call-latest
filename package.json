@@ -1,6 +1,6 @@
 {
   "name": "call-latest",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "homepage": "https://github.com/pyrz558/call-latest/tree/master",
   "description": "Only the latest async call should win. Zero-dependency utility that fixes stale fetch responses in search, tabs, routes, and every rapid-fire async UI.",
   "type": "module",
