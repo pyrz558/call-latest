@@ -2,6 +2,7 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: {
+    _core: "src/_core.ts",
     index: "src/index.ts",
     streaming: "src/streaming.ts",
     priority: "src/priority.ts",
@@ -13,6 +14,10 @@ export default defineConfig({
     telemetry: "src/telemetry.ts",
     ssr: "src/ssr.ts",
     edge: "src/edge.ts",
+    pipeline: "src/pipeline.ts",
+    observable: "src/observable.ts",
+    batcher: "src/batcher.ts",
+    "async-iterator": "src/async-iterator.ts",
     "adapters/react": "src/adapters/react.ts",
     "adapters/vue": "src/adapters/vue.ts",
     "adapters/svelte": "src/adapters/svelte.ts",

@@ -118,6 +118,46 @@
         "default": "./dist/edge.cjs"
       }
     },
+    "./pipeline": {
+      "import": {
+        "types": "./dist/pipeline.d.ts",
+        "default": "./dist/pipeline.js"
+      },
+      "require": {
+        "types": "./dist/pipeline.d.cts",
+        "default": "./dist/pipeline.cjs"
+      }
+    },
+    "./observable": {
+      "import": {
+        "types": "./dist/observable.d.ts",
+        "default": "./dist/observable.js"
+      },
+      "require": {
+        "types": "./dist/observable.d.cts",
+        "default": "./dist/observable.cjs"
+      }
+    },
+    "./batcher": {
+      "import": {
+        "types": "./dist/batcher.d.ts",
+        "default": "./dist/batcher.js"
+      },
+      "require": {
+        "types": "./dist/batcher.d.cts",
+        "default": "./dist/batcher.cjs"
+      }
+    },
+    "./async-iterator": {
+      "import": {
+        "types": "./dist/async-iterator.d.ts",
+        "default": "./dist/async-iterator.js"
+      },
+      "require": {
+        "types": "./dist/async-iterator.d.cts",
+        "default": "./dist/async-iterator.cjs"
+      }
+    },
     "./adapters/react": {
       "import": {
         "types": "./dist/adapters/react.d.ts",
@@ -165,7 +205,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "test": "vitest run --no-file-parallelism",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build && npm run test"

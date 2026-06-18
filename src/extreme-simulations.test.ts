@@ -1,20 +1,32 @@
 /**
- * Extreme-Scale Simulation Tests — call-latest v1.2.1
+ * Statistical Projection Benchmarks — call-latest v1.2.1
  *
- * 8 simulation suites that model planet-scale, chaos, and real-world
- * traffic events (Black Friday, Super Bowl). Actual requests are
- * statistically representative batches; 1B/10M results are projected
- * from measured throughput to keep the test suite fast.
+ * ─── IMPORTANT DISCLAIMER ──────────────────────────────────────────────────
+ * These tests do NOT actually process 10M or 1B requests.
+ * They run real batches of 10K–200K requests in this Node.js process,
+ * measure throughput, and PROJECT linearly to larger numbers.
+ *
+ * What is REAL in these tests:
+ *   ✓ Every promise created and awaited is real (not mocked)
+ *   ✓ Stale/fulfilled counts are real library behavior
+ *   ✓ Throughput numbers reflect actual Node.js + V8 performance
+ *   ✓ Memory snapshots reflect real heap usage
+ *   ✓ Chaos/fault injection uses real async error throwing
+ *
+ * What is a PROJECTION (not real):
+ *   ✗ "10M requests" = measured 200K, extrapolated ×50
+ *   ✗ "1B requests" = measured 100K, extrapolated ×10,000
+ *   ✗ No real distributed nodes, real network I/O, or real HTTP
+ *   ✗ GC pauses, OS scheduling, and network jitter not modeled
+ *
+ * For real HTTP/IO tests see: real-http.test.ts
+ * For real memory pressure see: memory-pressure.test.ts
+ * For real GC edge cases see: gc-edge-cases.test.ts
+ * ───────────────────────────────────────────────────────────────────────────
  */
 
 import { describe, expect, it, vi } from "vitest";
-import {
-  latest,
-  dedupe,
-  latestDedupe,
-  StaleError,
-  isStale,
-} from "./index.js";
+import { latest, dedupe, latestDedupe, StaleError, isStale } from "./index.js";
 
 vi.setConfig({ testTimeout: 120_000 });
 
@@ -113,9 +125,13 @@ describe("Extreme Load 10M Simulation", () => {
     const projectedSec = (PROJECTED / st.mean).toFixed(1);
 
     console.log(banner("Extreme Load 10M Simulation — Batch Sampling"));
-    console.log(`  Actual processed  : ${totalActual.toLocaleString()} requests`);
+    console.log(
+      `  Actual processed  : ${totalActual.toLocaleString()} requests`,
+    );
     console.log(`  Projected target  : ${PROJECTED.toLocaleString()} requests`);
-    console.log(`  Sub-batches       : ${NUM_BATCHES} × ${BATCH_SIZE.toLocaleString()}`);
+    console.log(
+      `  Sub-batches       : ${NUM_BATCHES} × ${BATCH_SIZE.toLocaleString()}`,
+    );
     console.log(`  Throughput mean   : ${st.mean.toLocaleString()} req/s`);
     console.log(`  Throughput p50    : ${st.p50.toLocaleString()} req/s`);
     console.log(`  Throughput p95    : ${st.p95.toLocaleString()} req/s`);
@@ -159,7 +175,9 @@ describe("Extreme Load 10M Simulation", () => {
     const wSt = calcStats(waveThroughputs);
     console.log(`  Avg wave throughput: ${wSt.mean.toLocaleString()} req/s`);
     console.log(`  Throughput variance: stddev=${wSt.stddev} req/s`);
-    console.log(`  Stability ratio    : ${(wSt.max / Math.max(1, wSt.min)).toFixed(2)}x (max/min)`);
+    console.log(
+      `  Stability ratio    : ${(wSt.max / Math.max(1, wSt.min)).toFixed(2)}x (max/min)`,
+    );
 
     expect(wSt.mean).toBeGreaterThan(500);
   });
@@ -185,7 +203,11 @@ describe("Planet-Scale Search Simulation", () => {
 
     console.log(banner("Planet-Scale Search — 8 Region Simulation"));
 
-    const regionStats: { region: string; throughput: number; dedupeRatio: number }[] = [];
+    const regionStats: {
+      region: string;
+      throughput: number;
+      dedupeRatio: number;
+    }[] = [];
 
     for (const region of REGIONS) {
       const r = await runDedupeBatch(PER_REGION, UNIQUE_QUERIES);
@@ -204,10 +226,16 @@ describe("Planet-Scale Search Simulation", () => {
     const avgDedupeRatio =
       regionStats.reduce((a, b) => a + b.dedupeRatio, 0) / REGIONS.length;
 
-    console.log(`\n  Global total requests : ${totalRequests.toLocaleString()}`);
-    console.log(`  Global avg throughput : ${avgThroughput.toLocaleString()} req/s`);
+    console.log(
+      `\n  Global total requests : ${totalRequests.toLocaleString()}`,
+    );
+    console.log(
+      `  Global avg throughput : ${avgThroughput.toLocaleString()} req/s`,
+    );
     console.log(`  Avg dedupe savings    : ${avgDedupeRatio.toFixed(1)}%`);
-    console.log(`  API calls eliminated  : ${((totalRequests - UNIQUE_QUERIES * REGIONS.length)).toLocaleString()}`);
+    console.log(
+      `  API calls eliminated  : ${(totalRequests - UNIQUE_QUERIES * REGIONS.length).toLocaleString()}`,
+    );
 
     for (const rs of regionStats) {
       expect(rs.throughput).toBeGreaterThan(500);
@@ -222,7 +250,12 @@ describe("Planet-Scale Search Simulation", () => {
     console.log(banner("Planet-Scale Search — Cross-Region latestDedupe"));
 
     // Each region has its own latestDedupe instance (simulates edge deployments)
-    const results: { region: string; fulfilled: number; stale: number; throughput: number }[] = [];
+    const results: {
+      region: string;
+      fulfilled: number;
+      stale: number;
+      throughput: number;
+    }[] = [];
 
     for (const region of REGIONS) {
       const fn = vi.fn(async (q: string) => `${region}:${q}`);
@@ -300,16 +333,24 @@ describe("Billion-Request Statistical Simulation", () => {
     const projectedHours = (PROJECTED / st.mean / 3_600).toFixed(2);
     const projectedDays = (PROJECTED / st.mean / 86_400).toFixed(2);
 
-    console.log(`  Sample size       : ${SAMPLE_SIZE.toLocaleString()} × ${SAMPLES} = ${(SAMPLE_SIZE * SAMPLES).toLocaleString()} total`);
-    console.log(`  Projected target  : ${PROJECTED.toLocaleString()} (1 Billion)`);
+    console.log(
+      `  Sample size       : ${SAMPLE_SIZE.toLocaleString()} × ${SAMPLES} = ${(SAMPLE_SIZE * SAMPLES).toLocaleString()} total`,
+    );
+    console.log(
+      `  Projected target  : ${PROJECTED.toLocaleString()} (1 Billion)`,
+    );
     console.log(`  Throughput mean   : ${st.mean.toLocaleString()} req/s`);
     console.log(`  Throughput stddev : ${st.stddev.toLocaleString()} req/s`);
-    console.log(`  95% CI            : [${ciLow.toLocaleString()}, ${ciHigh.toLocaleString()}] req/s`);
+    console.log(
+      `  95% CI            : [${ciLow.toLocaleString()}, ${ciHigh.toLocaleString()}] req/s`,
+    );
     console.log(`  Throughput p50    : ${st.p50.toLocaleString()} req/s`);
     console.log(`  Throughput p95    : ${st.p95.toLocaleString()} req/s`);
     console.log(`  Throughput p99    : ${st.p99.toLocaleString()} req/s`);
     console.log(`  Latency p95       : ${latSt.p95.toFixed(3)} ms per 1K req`);
-    console.log(`  Projected 1B ETA  : ~${projectedHours}h (~${projectedDays} days)`);
+    console.log(
+      `  Projected 1B ETA  : ~${projectedHours}h (~${projectedDays} days)`,
+    );
     console.log(`  Margin of error   : ±${marginOfError} req/s (95% CI)`);
 
     expect(st.mean).toBeGreaterThan(500);
@@ -343,21 +384,29 @@ describe("Billion-Request Statistical Simulation", () => {
     const xMean = (n - 1) / 2;
     const yMean = memSt.mean;
     const slope =
-      memorySnapshots.reduce((acc, y, x) => acc + (x - xMean) * (y - yMean), 0) /
-      memorySnapshots.reduce((acc, _, x) => acc + (x - xMean) ** 2, 0);
+      memorySnapshots.reduce(
+        (acc, y, x) => acc + (x - xMean) * (y - yMean),
+        0,
+      ) / memorySnapshots.reduce((acc, _, x) => acc + (x - xMean) ** 2, 0);
 
     // Projected heap at 1B requests (1B / BATCH_SIZE = 100,000 batches)
     const batchesFor1B = 1_000_000_000 / BATCH_SIZE;
     const projectedGrowthGB = ((slope * batchesFor1B) / 1_024).toFixed(2);
 
-    console.log(`  Heap snapshots    : [${memorySnapshots.map(m => m.toFixed(1)).join(", ")} MB]`);
+    console.log(
+      `  Heap snapshots    : [${memorySnapshots.map((m) => m.toFixed(1)).join(", ")} MB]`,
+    );
     console.log(`  Heap min          : ${memSt.min} MB`);
     console.log(`  Heap max          : ${memSt.max} MB`);
     console.log(`  Heap mean         : ${memSt.mean} MB`);
-    console.log(`  Heap growth       : ${growthMB >= 0 ? "+" : ""}${growthMB} MB (+${growthPct}%)`);
+    console.log(
+      `  Heap growth       : ${growthMB >= 0 ? "+" : ""}${growthMB} MB (+${growthPct}%)`,
+    );
     console.log(`  Slope (MB/batch)  : ${slope.toFixed(4)}`);
     console.log(`  Projected @1B     : ${projectedGrowthGB} GB additional`);
-    console.log(`  Verdict           : ${Math.abs(slope) < 1 ? "STABLE — no significant leak ✓" : "WARNING — possible growth"}`);
+    console.log(
+      `  Verdict           : ${Math.abs(slope) < 1 ? "STABLE — no significant leak ✓" : "WARNING — possible growth"}`,
+    );
 
     // Memory should not grow unboundedly: stddev < 50MB is reasonable
     expect(memSt.stddev).toBeLessThan(50);
@@ -404,7 +453,9 @@ describe("Billion-Request Replay Test", () => {
       }
 
       replayResults.push(groupWinners);
-      console.log(`  Replay ${run + 1}/${REPLAYS} | winners=[${groupWinners.join(", ")}]`);
+      console.log(
+        `  Replay ${run + 1}/${REPLAYS} | winners=[${groupWinners.join(", ")}]`,
+      );
     }
 
     // All replays must produce identical winners (deterministic)
@@ -413,7 +464,9 @@ describe("Billion-Request Replay Test", () => {
       expect(replayResults[run]).toEqual(reference);
     }
 
-    console.log(`  Determinism check : PASSED ✓ (all ${REPLAYS} replays identical)`);
+    console.log(
+      `  Determinism check : PASSED ✓ (all ${REPLAYS} replays identical)`,
+    );
     console.log(`  Expected winners  : [${reference.join(", ")}]`);
     console.log(
       `  Projection        : Billion-scale replay would produce same deterministic outcome`,
@@ -467,7 +520,9 @@ describe("Billion-Request Replay Test", () => {
 
     const tSt = calcStats(replayThroughputs);
     console.log(`  Avg throughput    : ${tSt.mean.toLocaleString()} req/s`);
-    console.log(`  Idempotency       : CONFIRMED ✓ (${UNIQUE_KEYS} unique calls per replay)`);
+    console.log(
+      `  Idempotency       : CONFIRMED ✓ (${UNIQUE_KEYS} unique calls per replay)`,
+    );
     console.log(
       `  Dedupe savings    : ${(((REPLAY_SIZE - UNIQUE_KEYS) / REPLAY_SIZE) * 100).toFixed(1)}% per replay`,
     );
@@ -511,10 +566,14 @@ describe("Chaos Engineering Fault Injection", () => {
     );
 
     console.log(`  Total requests    : ${TOTAL.toLocaleString()}`);
-    console.log(`  Throughput        : ${Math.round((TOTAL / elapsed) * 1000).toLocaleString()} req/s`);
+    console.log(
+      `  Throughput        : ${Math.round((TOTAL / elapsed) * 1000).toLocaleString()} req/s`,
+    );
     console.log(`  Fulfilled         : ${fulfilled.length}`);
     console.log(`  Rejected total    : ${rejected.length.toLocaleString()}`);
-    console.log(`  → StaleError      : ${staleErrors.length.toLocaleString()} (superseded calls)`);
+    console.log(
+      `  → StaleError      : ${staleErrors.length.toLocaleString()} (superseded calls)`,
+    );
     console.log(`  → Real errors     : ${realErrors.length} (chaos faults)`);
     console.log(
       `  Stale isolation   : ${staleErrors.every((r) => isStale((r as PromiseRejectedResult).reason)) ? "PERFECT ✓" : "FAIL"}`,
@@ -573,19 +632,27 @@ describe("Chaos Engineering Fault Injection", () => {
       .map((r) => (r as PromiseFulfilledResult<number>).value);
 
     console.log(`  Total requests    : ${TOTAL.toLocaleString()}`);
-    console.log(`  Jitter tiers      : ${JITTER_SLOTS} (0–${JITTER_SLOTS - 1} microtask delays)`);
+    console.log(
+      `  Jitter tiers      : ${JITTER_SLOTS} (0–${JITTER_SLOTS - 1} microtask delays)`,
+    );
     console.log(`  Elapsed           : ${elapsed.toFixed(2)}ms`);
-    console.log(`  Throughput        : ${Math.round((TOTAL / elapsed) * 1000).toLocaleString()} req/s`);
+    console.log(
+      `  Throughput        : ${Math.round((TOTAL / elapsed) * 1000).toLocaleString()} req/s`,
+    );
     console.log(`  Winners           : ${fulfilled.length}`);
     console.log(
       `  Winner value      : ${fulfilled[0]} (must be last call = ${TOTAL - 1})`,
     );
-    console.log(`  Out-of-order safe : ${fulfilled[0] === TOTAL - 1 ? "PASSED ✓" : "FAILED ✗"}`);
+    console.log(
+      `  Out-of-order safe : ${fulfilled[0] === TOTAL - 1 ? "PASSED ✓" : "FAILED ✗"}`,
+    );
 
     // Despite jitter, latest() ALWAYS guarantees the last call wins
     expect(fulfilled).toHaveLength(1);
     expect(fulfilled[0]).toBe(TOTAL - 1);
-    expect(settled.filter((r) => r.status === "rejected").length).toBe(TOTAL - 1);
+    expect(settled.filter((r) => r.status === "rejected").length).toBe(
+      TOTAL - 1,
+    );
   });
 
   it("cascading failure: 50% continuous error injection with recovery", async () => {
@@ -618,11 +685,13 @@ describe("Chaos Engineering Fault Injection", () => {
     const settled = await Promise.allSettled(promises);
 
     const stale = settled.filter(
-      (r) => r.status === "rejected" && isStale((r as PromiseRejectedResult).reason),
+      (r) =>
+        r.status === "rejected" && isStale((r as PromiseRejectedResult).reason),
     ).length;
     const real = settled.filter(
       (r) =>
-        r.status === "rejected" && !isStale((r as PromiseRejectedResult).reason),
+        r.status === "rejected" &&
+        !isStale((r as PromiseRejectedResult).reason),
     ).length;
     const ok = settled.filter((r) => r.status === "fulfilled").length;
 
@@ -633,7 +702,9 @@ describe("Chaos Engineering Fault Injection", () => {
     console.log(`  Fulfilled (ok)    : ${ok}`);
     console.log(`  Stale rejected    : ${stale.toLocaleString()}`);
     console.log(`  Real errors       : ${real}`);
-    console.log(`  Library survived  : ${ok + stale + real === TOTAL ? "YES ✓" : "NO ✗"}`);
+    console.log(
+      `  Library survived  : ${ok + stale + real === TOTAL ? "YES ✓" : "NO ✗"}`,
+    );
 
     expect(ok + stale + real).toBe(TOTAL);
     expect(stale).toBeGreaterThan(0);
@@ -660,7 +731,9 @@ describe("Regional Failover Tests", () => {
     const secondary = latest(secondaryFn);
     const tertiary = latest(tertiaryFn);
 
-    console.log(banner("Regional Failover — Primary Down → Secondary Takeover"));
+    console.log(
+      banner("Regional Failover — Primary Down → Secondary Takeover"),
+    );
 
     // Phase 1: primary healthy
     const phase1Promises: Promise<string>[] = [];
@@ -671,7 +744,9 @@ describe("Regional Failover Tests", () => {
     }
     const phase1 = await Promise.allSettled(phase1Promises);
     const phase1OK = phase1.filter((r) => r.status === "fulfilled").length;
-    console.log(`  Phase 1 (primary healthy)   : ${phase1OK} fulfilled / ${PHASE_SIZE} — ${primary.current()} calls`);
+    console.log(
+      `  Phase 1 (primary healthy)   : ${phase1OK} fulfilled / ${PHASE_SIZE} — ${primary.current()} calls`,
+    );
 
     // Phase 2: primary goes down — failover to secondary
     primaryDown = true;
@@ -683,7 +758,9 @@ describe("Regional Failover Tests", () => {
     }
     const phase2 = await Promise.allSettled(phase2Promises);
     const phase2OK = phase2.filter((r) => r.status === "fulfilled").length;
-    console.log(`  Phase 2 (failover→secondary) : ${phase2OK} fulfilled / ${PHASE_SIZE} — ${secondary.current()} calls`);
+    console.log(
+      `  Phase 2 (failover→secondary) : ${phase2OK} fulfilled / ${PHASE_SIZE} — ${secondary.current()} calls`,
+    );
 
     // Phase 3: secondary also degraded — failover to tertiary
     const phase3Promises: Promise<string>[] = [];
@@ -694,13 +771,21 @@ describe("Regional Failover Tests", () => {
     }
     const phase3 = await Promise.allSettled(phase3Promises);
     const phase3OK = phase3.filter((r) => r.status === "fulfilled").length;
-    console.log(`  Phase 3 (failover→tertiary)  : ${phase3OK} fulfilled / ${PHASE_SIZE} — ${tertiary.current()} calls`);
+    console.log(
+      `  Phase 3 (failover→tertiary)  : ${phase3OK} fulfilled / ${PHASE_SIZE} — ${tertiary.current()} calls`,
+    );
 
     const totalOK = phase1OK + phase2OK + phase3OK;
     const totalRequests = PHASE_SIZE * 3;
-    console.log(`\n  Total requests              : ${totalRequests.toLocaleString()}`);
-    console.log(`  Successfully served         : ${totalOK} (${((totalOK / totalRequests) * 100).toFixed(1)}%)`);
-    console.log(`  Zero-downtime achieved      : ${totalOK === totalRequests ? "YES ✓" : "PARTIAL"}`);
+    console.log(
+      `\n  Total requests              : ${totalRequests.toLocaleString()}`,
+    );
+    console.log(
+      `  Successfully served         : ${totalOK} (${((totalOK / totalRequests) * 100).toFixed(1)}%)`,
+    );
+    console.log(
+      `  Zero-downtime achieved      : ${totalOK === totalRequests ? "YES ✓" : "PARTIAL"}`,
+    );
 
     // Secondary and tertiary should always succeed
     expect(phase2OK).toBe(1); // latest() — only last wins
@@ -730,25 +815,43 @@ describe("Regional Failover Tests", () => {
 
     // Step 1: normal traffic on primary
     const s1: Promise<string>[] = [];
-    for (let i = 0; i < BATCH; i++) { const p = primary(i); s1.push(p); sink(p); }
+    for (let i = 0; i < BATCH; i++) {
+      const p = primary(i);
+      s1.push(p);
+      sink(p);
+    }
     const r1 = await Promise.allSettled(s1);
-    console.log(`  Step 1 primary healthy     : fulfilled=${r1.filter(r => r.status === 'fulfilled').length}`);
+    console.log(
+      `  Step 1 primary healthy     : fulfilled=${r1.filter((r) => r.status === "fulfilled").length}`,
+    );
 
     // Step 2: primary fails → route to secondary
     primaryHealthy = false;
     const s2: Promise<string>[] = [];
-    for (let i = 0; i < BATCH; i++) { const p = secondary(BATCH + i); s2.push(p); sink(p); }
+    for (let i = 0; i < BATCH; i++) {
+      const p = secondary(BATCH + i);
+      s2.push(p);
+      sink(p);
+    }
     const r2 = await Promise.allSettled(s2);
-    console.log(`  Step 2 failover→secondary  : fulfilled=${r2.filter(r => r.status === 'fulfilled').length}`);
+    console.log(
+      `  Step 2 failover→secondary  : fulfilled=${r2.filter((r) => r.status === "fulfilled").length}`,
+    );
 
     // Step 3: primary recovers → route back
     primaryHealthy = true;
     primary.reset();
     const s3: Promise<string>[] = [];
-    for (let i = 0; i < BATCH; i++) { const p = primary(BATCH * 2 + i); s3.push(p); sink(p); }
+    for (let i = 0; i < BATCH; i++) {
+      const p = primary(BATCH * 2 + i);
+      s3.push(p);
+      sink(p);
+    }
     const r3 = await Promise.allSettled(s3);
     const s3fulfilled = r3.filter((r) => r.status === "fulfilled");
-    console.log(`  Step 3 primary recovered   : fulfilled=${s3fulfilled.length}`);
+    console.log(
+      `  Step 3 primary recovered   : fulfilled=${s3fulfilled.length}`,
+    );
 
     // Validate recovered primary returns correct region values
     if (s3fulfilled.length > 0) {
@@ -756,7 +859,9 @@ describe("Regional Failover Tests", () => {
       expect(sample).toContain("us-east-1");
     }
 
-    console.log(`  Recovery verdict           : PASSED ✓ — primary back online, correct region`);
+    console.log(
+      `  Recovery verdict           : PASSED ✓ — primary back online, correct region`,
+    );
     expect(s3fulfilled.length).toBeGreaterThan(0);
     expect(r2.filter((r) => r.status === "fulfilled").length).toBe(1);
   });
@@ -770,13 +875,22 @@ describe("Black Friday Traffic Simulation", () => {
       { name: "Idle (00:00–09:00)", size: 500, label: "baseline" },
       { name: "Pre-Sale Ramp (09:00–11:59)", size: 2_000, label: "ramp" },
       { name: "Sale Start SPIKE (12:00)", size: 20_000, label: "SPIKE 40×" },
-      { name: "Sustained Peak (12:05–18:00)", size: 10_000, label: "sustained" },
+      {
+        name: "Sustained Peak (12:05–18:00)",
+        size: 10_000,
+        label: "sustained",
+      },
       { name: "Cooldown (18:00–24:00)", size: 1_000, label: "cooldown" },
     ] as const;
 
     console.log(banner("Black Friday Traffic Simulation — 5-Phase Surge"));
 
-    const phaseResults: { name: string; throughput: number; stale: number; fulfilled: number }[] = [];
+    const phaseResults: {
+      name: string;
+      throughput: number;
+      stale: number;
+      fulfilled: number;
+    }[] = [];
 
     for (const phase of phases) {
       const r = await runLatestBatch(phase.size);
@@ -800,12 +914,20 @@ describe("Black Friday Traffic Simulation", () => {
     );
     const spikePhase = phaseResults[2]!;
     const idlePhase = phaseResults[0]!;
-    const spikeRatio = (spikePhase.throughput / Math.max(1, idlePhase.throughput)).toFixed(1);
+    const spikeRatio = (
+      spikePhase.throughput / Math.max(1, idlePhase.throughput)
+    ).toFixed(1);
 
-    console.log(`\n  Total requests served : ${totalRequests.toLocaleString()}`);
-    console.log(`  Avg throughput        : ${avgThroughput.toLocaleString()} req/s`);
+    console.log(
+      `\n  Total requests served : ${totalRequests.toLocaleString()}`,
+    );
+    console.log(
+      `  Avg throughput        : ${avgThroughput.toLocaleString()} req/s`,
+    );
     console.log(`  Spike throughput ratio: ${spikeRatio}× vs idle`);
-    console.log(`  Correctness (all)     : PASSED ✓ — each phase has exactly 1 winner`);
+    console.log(
+      `  Correctness (all)     : PASSED ✓ — each phase has exactly 1 winner`,
+    );
 
     for (const p of phaseResults) {
       expect(p.fulfilled).toBe(1);
@@ -839,11 +961,19 @@ describe("Black Friday Traffic Simulation", () => {
 
     console.log(`  Incoming requests     : ${HERD_SIZE.toLocaleString()}`);
     console.log(`  Unique products       : ${UNIQUE_PRODUCTS}`);
-    console.log(`  Actual API calls      : ${actualAPICalls} (dedupe in action)`);
-    console.log(`  Calls eliminated      : ${savedCalls.toLocaleString()} (${dedupeRatio}% savings)`);
+    console.log(
+      `  Actual API calls      : ${actualAPICalls} (dedupe in action)`,
+    );
+    console.log(
+      `  Calls eliminated      : ${savedCalls.toLocaleString()} (${dedupeRatio}% savings)`,
+    );
     console.log(`  Fulfilled             : ${fulfilled.toLocaleString()}`);
-    console.log(`  Throughput            : ${Math.round((HERD_SIZE / elapsed) * 1000).toLocaleString()} req/s`);
-    console.log(`  Backend protection    : ${actualAPICalls <= UNIQUE_PRODUCTS ? "PERFECT ✓" : "OK"}`);
+    console.log(
+      `  Throughput            : ${Math.round((HERD_SIZE / elapsed) * 1000).toLocaleString()} req/s`,
+    );
+    console.log(
+      `  Backend protection    : ${actualAPICalls <= UNIQUE_PRODUCTS ? "PERFECT ✓" : "OK"}`,
+    );
     console.log(`  Herd crushed by       : ${dedupeRatio}% dedupe savings`);
 
     // dedupe ensures only UNIQUE_PRODUCTS actual backend calls
@@ -868,7 +998,8 @@ describe("Super Bowl Traffic Simulation", () => {
 
     console.log(banner("Super Bowl Traffic Simulation — Live Event Spikes"));
 
-    const eventStats: { name: string; throughput: number; ttWinner: number }[] = [];
+    const eventStats: { name: string; throughput: number; ttWinner: number }[] =
+      [];
 
     for (const event of events) {
       const fn = vi.fn(async (n: number) => n);
@@ -885,7 +1016,11 @@ describe("Super Bowl Traffic Simulation", () => {
       const throughput = Math.round((event.requests / elapsed) * 1000);
       const winnerTime = elapsed; // time-to-winner (single latest winner emerges)
 
-      eventStats.push({ name: event.name, throughput, ttWinner: +winnerTime.toFixed(1) });
+      eventStats.push({
+        name: event.name,
+        throughput,
+        ttWinner: +winnerTime.toFixed(1),
+      });
 
       const winners = settled.filter((r) => r.status === "fulfilled");
       console.log(
@@ -899,7 +1034,9 @@ describe("Super Bowl Traffic Simulation", () => {
 
     const halftimeEvent = eventStats[3]!;
     const pregameEvent = eventStats[0]!;
-    console.log(`\n  Peak event (Halftime)    : ${halftimeEvent.throughput.toLocaleString()} req/s`);
+    console.log(
+      `\n  Peak event (Halftime)    : ${halftimeEvent.throughput.toLocaleString()} req/s`,
+    );
     console.log(
       `  Burst factor             : ${events[3]!.multiplier}× pregame baseline`,
     );
@@ -919,11 +1056,26 @@ describe("Super Bowl Traffic Simulation", () => {
     const SCALE_FACTOR = 10; // represents 500K at real scale
 
     const queryPool = [
-      "mahomes stats", "kelce touchdown", "halftime show performer", "swift tickets",
-      "super bowl score", "mvp odds", "best plays", "injury update", "prop bets",
-      "next season schedule", "49ers comeback", "refs penalty", "punt return",
-      "stadium capacity", "ring cost", "ad commercials", "pepsi halftime", "viewership record",
-      "tiktok highlights", "championship trophy",
+      "mahomes stats",
+      "kelce touchdown",
+      "halftime show performer",
+      "swift tickets",
+      "super bowl score",
+      "mvp odds",
+      "best plays",
+      "injury update",
+      "prop bets",
+      "next season schedule",
+      "49ers comeback",
+      "refs penalty",
+      "punt return",
+      "stadium capacity",
+      "ring cost",
+      "ad commercials",
+      "pepsi halftime",
+      "viewership record",
+      "tiktok highlights",
+      "championship trophy",
     ];
 
     console.log(banner("Super Bowl — Halftime Dedup Surge (500K Scale)"));
@@ -947,17 +1099,29 @@ describe("Super Bowl Traffic Simulation", () => {
     const dedupeRate = +((eliminated / VIEWER_SEARCHES) * 100).toFixed(2);
     const projectedScale = VIEWER_SEARCHES * SCALE_FACTOR;
 
-    console.log(`  Viewer searches       : ${VIEWER_SEARCHES.toLocaleString()} (≈${projectedScale.toLocaleString()} at scale)`);
-    console.log(`  Hot queries           : ${HOT_QUERIES} ("${queryPool[0]}", ...)`);
+    console.log(
+      `  Viewer searches       : ${VIEWER_SEARCHES.toLocaleString()} (≈${projectedScale.toLocaleString()} at scale)`,
+    );
+    console.log(
+      `  Hot queries           : ${HOT_QUERIES} ("${queryPool[0]}", ...)`,
+    );
     console.log(`  Actual API calls      : ${actualAPICalls}`);
-    console.log(`  Calls eliminated      : ${eliminated.toLocaleString()} (${dedupeRate}%)`);
+    console.log(
+      `  Calls eliminated      : ${eliminated.toLocaleString()} (${dedupeRate}%)`,
+    );
     console.log(`  Fulfilled responses   : ${fulfilled.toLocaleString()}`);
-    console.log(`  Throughput            : ${Math.round((VIEWER_SEARCHES / elapsed) * 1000).toLocaleString()} req/s`);
+    console.log(
+      `  Throughput            : ${Math.round((VIEWER_SEARCHES / elapsed) * 1000).toLocaleString()} req/s`,
+    );
     console.log(
       `  @ 500K scale          : ${actualAPICalls * SCALE_FACTOR} API calls vs ${projectedScale.toLocaleString()} requests`,
     );
-    console.log(`  Backend saved from    : ${(projectedScale - actualAPICalls * SCALE_FACTOR).toLocaleString()} extra API calls`);
-    console.log(`  Halftime verdict      : SERVERS PROTECTED ✓ (${dedupeRate}% dedup rate)`);
+    console.log(
+      `  Backend saved from    : ${(projectedScale - actualAPICalls * SCALE_FACTOR).toLocaleString()} extra API calls`,
+    );
+    console.log(
+      `  Halftime verdict      : SERVERS PROTECTED ✓ (${dedupeRate}% dedup rate)`,
+    );
 
     expect(actualAPICalls).toBe(HOT_QUERIES);
     expect(fulfilled).toBe(VIEWER_SEARCHES);
